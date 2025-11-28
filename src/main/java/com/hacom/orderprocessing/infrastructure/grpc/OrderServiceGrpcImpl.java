@@ -39,7 +39,6 @@ public class OrderServiceGrpcImpl extends OrderServiceGrpc.OrderServiceImplBase 
         
         ordersCreatedCounter.increment();
 
-        // Mandamos el OrderRequest (protobuf) directamente al actor
         CompletionStage<Object> future = Patterns.ask(orderProcessorActor, request, askTimeout);
 
         future.whenComplete((result, ex) -> {
@@ -51,10 +50,8 @@ public class OrderServiceGrpcImpl extends OrderServiceGrpc.OrderServiceImplBase 
 
             try {
                 if (result instanceof CreateOrderResponse) {
-                    // actor devolvió el OrderResponse protobuf directamente
                     responseObserver.onNext((CreateOrderResponse) result);
                 } else if (result instanceof com.hacom.orderprocessing.domain.model.Order) {
-                    // alternativa: actor devolvió tu entidad domain Order -> convertir
                     com.hacom.orderprocessing.domain.model.Order saved = (com.hacom.orderprocessing.domain.model.Order) result;
                     CreateOrderResponse response = CreateOrderResponse.newBuilder()
                             .setOrderId(request.getOrderId())
