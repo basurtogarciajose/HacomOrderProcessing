@@ -38,6 +38,7 @@ Este  proyecto  implementa  un  flujo  de  procesamiento  de  pedidos  totalment
 Todo el sistema  puede  ejecutarse  tanto  con  **Gradle**  como  dentro  de  un  contenedor **Docker**.
 
 ## 2. Tecnologías Utilizadas
+
 |Tecnología|Uso|
 |--|--|
 |Java 17|Lenguaje base|
@@ -71,21 +72,22 @@ Todo el sistema  puede  ejecutarse  tanto  con  **Gradle**  como  dentro  de  un
 ## 4. Estructura del proyecto
 Se ha implementado una arquitectura hexagonal para este proyecto porque encaja muy bien con la idea central del ejercicio: integrar muchas tecnologías distintas (gRPC, Akka, MongoDB, SMPP, WebFlux, Actuator) sin que el núcleo de negocio dependa directamente de ninguna de ellas.
 
+```
 HacomOrderProcessing/
 │── src/
 │   │── main/
 │   │   │── java/com/hacom/orderprocessing/
 │   │   │   │── domain
 │   │   │   │   │── model
-│   │   │   │      │── repository
+│   │   │   │       │── repository
 │   │   │   │── infrastructure
-│   │   │   │    │── actor
-│   │   │   │    │── config
-│   │   │   │    │── grpc
-│   │   │   │    │── persistence
-│   │   │   │    │── rest
-│   │   │   │    │  │── dto
-│   │   │   │    │  │── smpp
+│   │   │   │   │── actor
+│   │   │   │   │── config
+│   │   │   │   │── grpc
+│   │   │   │   │── persistence
+│   │   │   │   │── rest
+│   │   │   │   │   │── dto
+│   │   │   │   │   │── smpp
 │   │   │── proto/order.proto
 │   │   │── resources/
 │   │   │  │── application.yml
@@ -94,19 +96,22 @@ HacomOrderProcessing/
 │── settings.gradle
 │── Dockerfile
 │── README.md
+```
 
 ## 5. Configuración
->```mongodbDatabase: "exampleDb"
->mongodbUri: "mongodb://127.0.0.1:27017"
->apiPort: 9898
->grpcPort: 6565
->smpp:
->  enabled: true
->  host: "127.0.0.1"
->  port: 2775
->  systemId: "smppclient1"
->  password: "password"
->  source: "OrderProcessingAPI"```
+```bash
+mongodbDatabase: "exampleDb"
+mongodbUri: "mongodb://127.0.0.1:27017"
+apiPort: 9898
+grpcPort: 6565
+smpp:
+  enabled: true
+  host: "127.0.0.1"
+  port: 2775
+  systemId: "smppclient1"
+  password: "password"
+  source: "OrderProcessingAPI"
+  ```
   
 MongoDB y WebFlux se configuran programáticamente, NO con auto-configuración de Spring.
 
@@ -129,15 +134,20 @@ El proyecto incluye un Dockerfile listo para producción.
 ### 1. Construir imagen
 >```docker build -t orderprocessing-app .```
 ### 2. Ejecutar contenedor
->```docker run -d \
->--name orderprocessing \
->-p 9898:9898 \
->-p 6565:6565 \
->-e mongodbUri="mongodb://host.docker.internal:27017" \
->-e smpp_enabled=true \
->-e smpp_host="host.docker.internal" \
->-e smpp_port=2775 \
->orderprocessing-app```
+
+
+```bash
+docker run -d \
+--name orderprocessing \
+-p 9898:9898 \
+-p 6565:6565 \
+-e mongodbUri="mongodb://host.docker.internal:27017" \
+-e smpp_enabled=true \
+-e smpp_host="host.docker.internal" \
+-e smpp_port=2775 \
+orderprocessing-app
+```
+
 ### 3. Ver logs del contenedor
 >```docker logs -f orderprocessing```
 ### 4. Detener contenedor
@@ -146,17 +156,19 @@ El proyecto incluye un Dockerfile listo para producción.
 ## 8. Pruebas
 ### 1. Crear orden via gRPC
 
->```grpcurl -plaintext \
->  -import-path src/main/proto \
->        -proto order.proto \
->          -d '{
->                   "orderId": "A1001",
->                   "customerId": "C900",
->                   "customerPhoneNumber": "5551112222",
->                   "items": { "items": ["item1", "item2"] }
->                }' \
->           localhost:6565 \
->           order.OrderService/CreateOrder```
+```bash
+grpcurl -plaintext \
+  -import-path src/main/proto \
+        -proto order.proto \
+          -d '{
+                   "orderId": "A1001",
+                   "customerId": "C900",
+                   "customerPhoneNumber": "5551112222",
+                   "items": { "items": ["item1", "item2"] }
+                }' \
+           localhost:6565 \
+           order.OrderService/CreateOrder
+```
 ### 2. API REST — Obtener estatus de orden
 >```curl http://localhost:9898/orders/A1001```
 ### 3. API REST — Contar órdenes por rango
