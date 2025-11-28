@@ -1,0 +1,108 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.2'
+    id 'io.spring.dependency-management' version '1.1.6'
+
+    // gRPC
+    id "com.google.protobuf" version "0.9.4"
+}
+
+group = 'com.hacom'
+version = '1.0.0'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    //Spring
+    implementation('org.springframework.boot:spring-boot-starter-webflux') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    implementation('org.springframework.boot:spring-boot-starter-actuator') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    implementation('org.springframework.boot:spring-boot-starter-data-mongodb-reactive') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+
+    //Prometheus
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    //Log4j2
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.23.1'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    implementation 'org.apache.logging.log4j:log4j-api:2.23.1'
+	implementation 'org.apache.logging.log4j:log4j-core:2.23.1'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+
+    //gRPC
+    implementation 'io.grpc:grpc-netty-shaded:1.65.0'
+    implementation 'io.grpc:grpc-protobuf:1.65.0'
+    implementation 'io.grpc:grpc-stub:1.65.0'
+    
+    compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
+    
+    //Akka
+    implementation 'com.typesafe.akka:akka-actor_2.13:2.6.21'
+
+    //SMPP
+    implementation 'com.fizzed:ch-smpp:5.0.9'
+
+    //Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    //OpenAPI
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.6.0'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+configurations {
+    all {
+        exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
+        exclude group: "ch.qos.logback"
+    }
+}
+
+// gRPC
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.3"
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.65.0"
+        }
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.plugins {
+                grpc {}
+            }
+            task.generateDescriptorSet = false
+        }
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += "${buildDir}/generated/source/proto/main/java"
+            srcDirs += "${buildDir}/generated/source/proto/main/grpc"
+        }
+    }
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}
+
+compileJava.dependsOn(generateProto)

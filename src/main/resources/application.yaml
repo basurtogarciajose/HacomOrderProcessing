@@ -1,0 +1,35 @@
+mongodbDatabase: "exampleDb"
+mongodbUri: "mongodb://127.0.0.1:27017"
+apiPort: 9898
+grpcPort: 6565
+
+spring:
+  main:
+    web-application-type: reactive
+    allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.web.reactive.ReactiveWebServerFactoryAutoConfiguration
+  application:
+    name: orderprocessing
+
+logging:
+  config: "classpath:log4j2.yml"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+smpp:
+  host: "127.0.0.1"
+  port: 2775
+  systemId: "smppclient1"
+  password: "password"
+  source: "OrderProcessingAPI"
+  enabled: true
